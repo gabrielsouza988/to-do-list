@@ -12,7 +12,6 @@
   padding: 0;
   max-width: 90%;
   margin: 0 auto;
-
 }
 
 .list > li {
@@ -93,11 +92,19 @@
     </div>
   </div>
 
-  <ul class="list">
-    <ListItem/>
-    {{ listTasks }}
-  </ul>
-  <p>You don't have any tasks yet.</p>
+  <div class="container">
+    <div class="row mt-3 d-flex justify-content-center" >
+      <div class="col-md-4" v-for="task in this.listTasks" :key="task.id" @click.prevent="redirectTask(task.id)">
+        <div class=" border border-secondary p-1 mb-2">
+          <p>Tarefa: {{ task.task }}</p>
+          <p>------------------</p>
+          <p>Data Cadastro: {{ task.date }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p v-show="this.listTasks">You don't have any tasks yet.</p>
 </template>
 
 <script>
@@ -109,8 +116,8 @@ export default {
     return {
       task: '',
       date: '',
-      modulos: []
-    };
+      listTasks: [],
+    }
   },
   methods: {
     addTask: function () {
@@ -128,29 +135,32 @@ export default {
         },
         data: JSON.stringify($payload)
       }).then((response) => {
-        // console.log(response);
-        this.modulos = response.data;
+        this.listTasks.push(response.data.task);
       }).catch(function (error) {
         console.log(error);
       });
-    }
-  },
-  computed: {
-    listTasks: function () {
+    },
+    tasks: function () {
       this.axios({
-        method: 'get',
-        url: 'http://127.0.0.1:4000/api/list-tasks',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Authorization': 'Bearer ' + Cookie.get('_to_do_token')
-        }
-      }).then((response) => {
-        console.log(response);
-      }).catch(function (error) {
-        console.log(error);
-      });
-    }
+          method: 'get',
+          url: "http://127.0.0.1:4000/api/list-tasks",
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': 'Bearer ' + Cookie.get('_to_do_token')
+          }
+        }).then((response) => {
+        this.listTasks = response.data.tasks;
+      }).catch(function () {
+          this.listTasks = [{ "task": "sem metodos", "id": 1}];
+        });
+      },
+      redirectTask: function (id) {
+        this.$router.replace('/task/'+ id);
+      }
+  },
+  mounted() {
+    this.listTasks = this.tasks();
   }
 }
 </script>

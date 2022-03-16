@@ -29,7 +29,7 @@ nav a.router-link-exact-active {
     |
     <router-link to="/login">Login</router-link>
     |
-    <router-link to="/list">List</router-link>
+    <router-link to="/task">List</router-link>
     |
     <router-link to="/logout" @click="logout">Logout</router-link>
   </nav>

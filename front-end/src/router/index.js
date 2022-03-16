@@ -20,13 +20,13 @@ const routes = [
     component: LogoutComponent
   },
   {
-    path: '/list',
-    name: 'list',
+    path: '/task',
+    name: 'task',
     beforeEnter: Guest.auth,
     component: ListView
   },
   {
-    path: '/SubTasksView',
+    path: '/task/:id',
     name: 'SubTasksView',
     beforeEnter: Guest.auth,
     component: SubTasksView

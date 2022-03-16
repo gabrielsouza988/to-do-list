@@ -7,6 +7,7 @@
 .color-green {
   color: #42b983;
 }
+
 .list {
   padding: 0;
   max-width: 90%;
@@ -17,6 +18,7 @@
 .list > li {
   padding: 0;
 }
+
 /*.wrapper {*/
 /*  display: flex;*/
 /*  gap: 0.5rem 1rem;*/
@@ -54,7 +56,7 @@
 </style>
 
 <template>
-  <h1 class="title">To-do list</h1>
+  <h1 class="title">Lista das tarefas</h1>
 
   <div class="row d-flex justify-content-center">
     <div class="col-md-3">
@@ -91,16 +93,22 @@
     </div>
   </div>
 
-  <ul class="list">
-    <ListItem />
-    <li>dasd</li>
-    <li>dasd</li>
-    <li>dasd</li>
-  </ul>
-  <p>You don't have any tasks yet.</p>
+  <div class="container">
+    <div class="row mt-3 d-flex justify-content-center" >
+      <div class="col-md-4" v-for="task in this.listTasks" :key="task.id">
+        <div class=" border border-secondary p-1 mb-2">
+          <p>Tarefa: {{ task.task }}</p>
+          <p>------------------</p>
+          <p>Data Limite: {{ task.date_execution }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p v-show="this.showLists">You don't have any tasks yet.</p>
 </template>
 
-<script >
+<script>
 import Cookie from 'js-cookie';
 
 export default {
@@ -109,7 +117,9 @@ export default {
     return {
       task: '',
       date: '',
-    };
+      listTasks: [],
+      showLists: true
+    }
   },
   methods: {
     addTask: function () {
@@ -127,26 +137,32 @@ export default {
         },
         data: JSON.stringify($payload)
       }).then((response) => {
-        console.log(response);
+        this.listTasks.push(response.data.task);
       }).catch(function (error) {
         console.log(error);
       });
     },
-    listTasks: function () {
+    tasks: function () {
       this.axios({
         method: 'get',
-        url: 'http://127.0.0.1:4000/api/list-tasks',
+        url: "http://127.0.0.1:4000/api/task/"+ this.$route.params.id,
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
           'Authorization': 'Bearer ' + Cookie.get('_to_do_token')
         }
       }).then((response) => {
-        console.log(response);
-      }).catch(function (error) {
-        console.log(error);
+        this.listTasks = response.data.tasksSecondary;
+        if (response.data.tasksSecondary.length > 0) {
+          this.showLists = false;
+        }
+      }).catch(function () {
+        this.listTasks = [{ "task": "sem metodos", "id": 1}];
       });
     }
+  },
+  mounted() {
+    this.listTasks = this.tasks();
   }
 }
 </script>

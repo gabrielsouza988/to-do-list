@@ -31,7 +31,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::controller(TaskController::class)->middleware('auth')->group(function () {
     Route::get('list-tasks', 'index');
-    Route::get('list-secondaryTasks', 'secondaryTasks');
+    Route::get('task/{id}', 'secondaryTasks');
     Route::post('taskCreate', 'store');
     Route::post('secondaryTaskCreate', 'storeSecondaryTask');
     Route::put('secondaryTaskUpdate', 'update');
