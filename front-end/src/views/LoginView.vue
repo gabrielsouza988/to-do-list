@@ -64,6 +64,7 @@
 
 <script>
 import Cookie from 'js-cookie';
+import {urlApi} from "@/main";
 
 export default {
   name: "LoginView",
@@ -81,7 +82,7 @@ export default {
       };
       this.axios({
         method: 'post',
-        url: 'http://127.0.0.1:4000/api/login',
+        url: urlApi + 'login',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -90,7 +91,9 @@ export default {
         data: JSON.stringify($payload)
       }).then((response) => {
         Cookie.set('_to_do_token', response.data.access_token);
-        this.$router.replace('/about');
+        this.$router.replace('/task');
+        this.login = false;
+        this.logoff = true;
       }).catch(function (error) {
         console.log(error);
       });

@@ -37,7 +37,7 @@ class TaskController extends Controller
             return response()->json(['tasks' => 'Você ainda não tem nenhuma task!'], 200);
         }
 
-        return response()->json(['tasksSecondary' => $tasks], 202);
+        return response()->json(['task' => Task::find($id), 'tasksSecondary' => $tasks], 202);
     }
 
 
@@ -71,11 +71,11 @@ class TaskController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function storeSecondaryTask(Request $request): JsonResponse
+    public function storeSecondaryTask(Request $request, $idTaskPrimary): JsonResponse
     {
         try {
             $task = SecondaryTask::create([
-                'task_id' => $request['taskPrimary'],
+                'task_id' => $idTaskPrimary,
                 'task' => $request['task'],
                 'date_execution' => $request['date'],
                 'status' => '0'
@@ -130,8 +130,8 @@ class TaskController extends Controller
                 $data['task'] = $request['task'];
             }
 
-            if ($task->task != $request['task']) {
-                $data['date_execution'] = $request['date'];
+            if ($task->date != $request['date']) {
+                $data['date'] = $request['date'];
             }
 
             if (!empty($data)) {
@@ -145,13 +145,75 @@ class TaskController extends Controller
     }
 
     /**
+     * Update the specified resource in storage.
+     *
+     * @param Request $request
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function secondaryTaskUpdate(Request $request, int $id): JsonResponse
+    {
+        try {
+            $task = SecondaryTask::find($id);
+            if (empty($task)) {
+                return response()->json(['message' => 'Tarefa não encontrada!'], 400);
+            }
+
+            $data = [];
+            if (isset($request['task'])){
+                $data['task'] = $request['task'];
+            }
+
+            if (isset($request['date'])){
+                $data['date_execution'] = $request['date'];
+            }
+
+            if (isset($request['status'])){
+                $data['status'] = $request['status'];
+            }
+
+            $response = [
+                'message' => 'Você não esta mandando dados no body!'
+            ];
+            $status = 400;
+            if (!empty($data)) {
+                $newTask = $task->update($data);
+                $allTasks = SecondaryTask::where('task_id', $task->task_id)->get();
+
+                $response = [
+                    'newTask' => $newTask,
+                    'allTasks' => $allTasks,
+                    'message' => 'Tarefa atualizada com sucesso!'
+                ];
+                $status = 202;
+            }
+
+            return response()->json($response, $status);
+        } catch (QueryException $e) {
+            return response()->json(['message' => "Houve algum erro!", 'error' => $e], 400);
+        }
+    }
+
+    /**
      * Remove the specified resource from storage.
      *
      * @param int $id
      * @return Response
      */
-    public function destroy($id)
+    public function removeSecondaryTask($id)
     {
-        //
+        try {
+            $task = SecondaryTask::find($id);
+            if (empty($task)) {
+                return response()->json(['message' => 'Tarefa não encontrada!'], 400);
+            }
+            $task->delete();
+            $tasks = SecondaryTask::where('task_id', $task->task_id)->get();
+            return response()->json([
+                'secondaryTask' => $tasks,
+                'message' => 'Tarefa deletada com sucesso!'], 202);
+        } catch (QueryException $e) {
+            return response()->json(['message' => "Houve algum erro!", 'error' => $e], 400);
+        }
     }
 }

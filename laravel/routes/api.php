@@ -33,6 +33,7 @@ Route::controller(TaskController::class)->middleware('auth')->group(function () 
     Route::get('list-tasks', 'index');
     Route::get('task/{id}', 'secondaryTasks');
     Route::post('taskCreate', 'store');
-    Route::post('secondaryTaskCreate', 'storeSecondaryTask');
-    Route::put('secondaryTaskUpdate', 'update');
+    Route::post('secondaryTaskCreate/{id}', 'storeSecondaryTask');
+    Route::put('secondaryTaskUpdate/{id}', 'secondaryTaskUpdate');
+    Route::delete('removeSecondaryTask/{id}', 'removeSecondaryTask');
 });
