@@ -23,17 +23,14 @@ nav a.router-link-exact-active {
 
 <template>
   <nav>
-    <router-link to="/login" v-show="this.login">
-      Login
-      |
-    </router-link>
+<!--    <router-link to="/task" v-show="this.logoff">-->
+<!--      List-->
+<!--      |-->
+<!--    </router-link>-->
 
-    <router-link to="/task">
-      List
-      |
+    <router-link to="/logout" v-show="this.logoff" @click="logout">
+      Logout
     </router-link>
-
-    <router-link to="/logout" v-show="this.logoff" @click="logout">Logout</router-link>
   </nav>
   <router-view/>
 </template>
@@ -52,29 +49,15 @@ export default {
   },
   methods: {
     logout: function () {
-      // this.axios({
-      //   method: 'post',
-      //   url: urlApi + 'logout',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'Accept': 'application/json',
-      //     'Authorization': 'Bearer ' + Cookie.get('_to_do_token')
-      //   }
-      // }).then(() => {
-      //   Cookie.remove('_to_do_token');
-      //   this.$router.replace('/login');
-      // }).catch(function (error) {
-      //   console.log(error);
-      // });
       Cookie.remove('_to_do_token');
-      this.$router.replace('/login');
+      this.$router.replace('/');
       this.logoff = false;
       this.login = true;
     },
   },
   mounted() {
-    this.login = Cookie.get('_to_do_token') ? false : true;
     this.logoff = Cookie.get('_to_do_token') ? true : false;
+    console.log(Cookie.get('_to_do_token') ? true : false)
   }
 }
 </script>

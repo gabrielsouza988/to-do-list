@@ -83,7 +83,14 @@ span {
       </div>
     </div>
 
-    <div class="row mt-3">
+    <div class="row mt-3 mb-3" v-show="this.showLoading">
+      <div class="col-md-12 d-flex justify-content-center">
+        <LoadingComponent />
+      </div>
+    </div>
+
+    <div class="row mt-3" v-show="!this.showLoading">
+      <p v-show="this.showLists">Você não tem itens cadastradas.</p>
       <div class="col-md-4 mb-3" v-for="task in this.listTasks" :key="task.id">
         <article class="card">
           <span>
@@ -95,7 +102,7 @@ span {
               {{ task.task }}
               <i :class="task.status == '2' ? 'fa-solid fa-check text-success' : 'd-none' "></i>
             </h2>
-            <p>Criado: {{ task.date_execution }}</p>
+            <p>Data: {{ task.date_execution }}</p>
             <div class="row">
               <div class="col-md-12">
                 <button class="btn btn-sm btn-danger"
@@ -113,7 +120,6 @@ span {
       </div>
     </div>
 
-    <p v-show="this.showLists">Você não tem itens cadastradas.</p>
 
     <div class="row">
       <div class="col-md-12">
@@ -126,6 +132,7 @@ span {
 <script>
 import Cookie from 'js-cookie';
 import {urlApi} from "@/main";
+import LoadingComponent from '@/components/LoadingComponent.vue';
 
 export default {
   name: "ListView",
@@ -137,10 +144,15 @@ export default {
       listTasks: [],
       showLists: true,
       showDelete: true,
+      showLoading: true
     }
+  },
+  components: {
+    LoadingComponent
   },
   methods: {
     addTask: function () {
+      this.showLoading = true;
       const $payload = {
         task: this.task,
         date: this.date,
@@ -160,6 +172,7 @@ export default {
       }).catch(function (error) {
         console.log(error);
       });
+        this.showLoading = false;
     },
     tasks: function () {
       this.axios({
@@ -173,7 +186,7 @@ export default {
       }).then((response) => {
         this.listTasks = response.data.tasksSecondary;
         this.nameTask = response.data.task.task;
-
+        this.showLoading = false;
         if (response.data.tasksSecondary.length > 0) {
           this.showLists = false;
         }
@@ -182,6 +195,8 @@ export default {
       });
     },
     secondaryTaskUpdate: function (id) {
+      this.showLoading = true;
+
       const $payload = {
         status: '2',
       }
@@ -201,8 +216,11 @@ export default {
       }).catch(function () {
         this.listTasks = [{"task": "sem metodos", "id": 1}];
       });
+      this.showLoading = false;
     },
     removeSecondaryTask: function (id) {
+      this.showLoading = true;
+
       this.axios({
         method: 'delete',
         url: urlApi + "removeSecondaryTask/" + id,
@@ -218,7 +236,7 @@ export default {
       }).catch(function () {
         this.listTasks = [{"task": "sem metodos", "id": 1}];
       });
-
+      this.showLoading = false;
     },
     listTasksRoute: function () {
       this.$router.replace('/task/');
@@ -226,7 +244,6 @@ export default {
   },
   mounted() {
     this.listTasks = this.tasks();
-    this.nameTask = this.tasks();
   }
 }
 </script>

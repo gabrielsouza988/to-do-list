@@ -2,7 +2,8 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\{TaskController, TodoListController, AuthController};
+use App\Http\Controllers\{TaskController, AuthController};
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -17,17 +18,12 @@ use App\Http\Controllers\{TaskController, TodoListController, AuthController};
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
-//Route::post('login', [AuthController::class, 'login']);
 
-//Route::group([
-//    'middleware' => 'api',
-//    'prefix' => 'auth'
-//], function ($router) {
-    Route::post('login', [AuthController::class, 'login']);
-    Route::post('logout', [AuthController::class, 'logout']);
-    Route::post('refresh', [AuthController::class, 'refresh']);
-    Route::post('me', [AuthController::class, 'me']);
-//});
+Route::post('login', [AuthController::class, 'login']);
+Route::post('register', [AuthController::class, 'register']);
+Route::post('logout', [AuthController::class, 'logout']);
+Route::post('refresh', [AuthController::class, 'refresh']);
+Route::post('me', [AuthController::class, 'me']);
 
 Route::controller(TaskController::class)->middleware('auth')->group(function () {
     Route::get('list-tasks', 'index');
@@ -36,4 +32,5 @@ Route::controller(TaskController::class)->middleware('auth')->group(function () 
     Route::post('secondaryTaskCreate/{id}', 'storeSecondaryTask');
     Route::put('secondaryTaskUpdate/{id}', 'secondaryTaskUpdate');
     Route::delete('removeSecondaryTask/{id}', 'removeSecondaryTask');
+    Route::delete('removeTask/{id}', 'removeTask');
 });

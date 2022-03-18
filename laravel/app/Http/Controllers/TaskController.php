@@ -29,7 +29,11 @@ class TaskController extends Controller
         return response()->json(['tasks' => $tasks], 202);
     }
 
-    public function secondaryTasks($id)
+    /**
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function secondaryTasks(int $id): JsonResponse
     {
         $tasks = SecondaryTask::where('task_id', $id)->get();
 
@@ -69,9 +73,10 @@ class TaskController extends Controller
      * Store a newly created resource in storage.
      *
      * @param Request $request
+     * @param $idTaskPrimary
      * @return JsonResponse
      */
-    public function storeSecondaryTask(Request $request, $idTaskPrimary): JsonResponse
+    public function storeSecondaryTask(Request $request, int $idTaskPrimary): JsonResponse
     {
         try {
             $task = SecondaryTask::create([
@@ -96,7 +101,7 @@ class TaskController extends Controller
      * @param int $id
      * @return JsonResponse
      */
-    public function show($id): JsonResponse
+    public function show(int $id): JsonResponse
     {
         try {
             $task = Task::find($id);
@@ -198,9 +203,32 @@ class TaskController extends Controller
      * Remove the specified resource from storage.
      *
      * @param int $id
-     * @return Response
+     * @return JsonResponse
      */
-    public function removeSecondaryTask($id)
+    public function removeTask(int $id): JsonResponse
+    {
+        try {
+            $task = Task::find($id);
+            if (empty($task)) {
+                return response()->json(['message' => 'Tarefa não encontrada!'], 400);
+            }
+            $task->delete();
+            $tasks = Task::find($id);
+            return response()->json([
+                'task' => $tasks,
+                'message' => 'Tarefa deletada com sucesso!'], 202);
+        } catch (QueryException $e) {
+            return response()->json(['message' => "Houve algum erro!", 'error' => $e], 400);
+        }
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param int $id
+     * @return JsonResponse
+     */
+    public function removeSecondaryTask(int $id): JsonResponse
     {
         try {
             $task = SecondaryTask::find($id);

@@ -42,11 +42,22 @@
     <form @submit.stop.prevent="submit">
       <div class="row">
         <div class="col-md-12">
-          <h1 class="h3 mb-3 fw-normal color-green">Login</h1>
+          <h1 class="h3 mb-3 fw-normal color-green">Cadastro</h1>
         </div>
       </div>
 
-      <div class="row">
+      <div class="row mb-2">
+        <div class="col-md-12">
+          <div class="form-floating">
+            <input
+                v-model="name"
+                type="text" name="name" class="form-control" id="floatingInput" placeholder="name">
+            <label for="floatingInput">Nome</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="row mb-2">
         <div class="col-md-12">
           <div class="form-floating">
             <input
@@ -57,7 +68,7 @@
         </div>
       </div>
 
-      <div class="row">
+      <div class="row mb-2">
         <div class="col-md-12">
           <div class="form-floating">
             <input
@@ -70,12 +81,12 @@
 
       <div class="row">
         <div class="col-md-12">
-          <router-link to="/register" class="mt-5 mb-3 text-muted">cadastrar</router-link>
+          <router-link to="/" class="mt-5 mb-3 text-muted">Já tem conta? clique aqui!</router-link>
         </div>
       </div>
       <div class="row">
         <div class="col-md-12">
-          <button class="w-100 btn btn-lg bg-green btn-outline-success" type="submit">Entrar</button>
+          <button class="w-100 btn btn-lg bg-green btn-outline-success" type="submit">Cadastrar</button>
         </div>
       </div>
     </form>
@@ -83,15 +94,16 @@
 </template>
 
 <script>
-import Cookie from 'js-cookie';
+// import Cookie from 'js-cookie';
 import {urlApi} from "@/main";
 
 export default {
-  name: "LoginView",
+  name: "RegisterView",
   data() {
     return {
       email: '',
       password: '',
+      name: '',
     };
   },
   methods: {
@@ -99,21 +111,23 @@ export default {
       const $payload = {
         email: this.email,
         password: this.password,
+        name: this.name,
       };
       this.axios({
         method: 'post',
-        url: urlApi + 'login',
+        url: urlApi + 'register',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'Authorization': 'Bearer ' + Cookie.get('_to_do_token')
+          // 'Authorization': 'Bearer ' + Cookie.get('_to_do_token')
         },
         data: JSON.stringify($payload)
       }).then((response) => {
-        Cookie.set('_to_do_token', response.data.access_token);
-        this.$router.replace('/task');
-        this.login = false;
-        this.logoff = true;
+        console.log(response);
+        // Cookie.set('_to_do_token', response.data.access_token);
+        this.$router.replace('/');
+        // this.login = false;
+        // this.logoff = true;
       }).catch(function (error) {
         console.log(error);
       });

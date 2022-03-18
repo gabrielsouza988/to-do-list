@@ -52,7 +52,7 @@ export default {
           .then(res => {
             console.log(res)
             Cookie.delete('_to_do_token');
-            this.$router.go('/about');
+            this.$router.go('/');
           });
     },
   }
