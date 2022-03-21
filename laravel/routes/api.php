@@ -2,7 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\{TaskController, AuthController};
+use App\Http\Controllers\{TaskController, ItensTaskController, AuthController};
 
 /*
 |--------------------------------------------------------------------------
@@ -19,18 +19,23 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::post('login', [AuthController::class, 'login']);
-Route::post('register', [AuthController::class, 'register']);
-Route::post('logout', [AuthController::class, 'logout']);
-Route::post('refresh', [AuthController::class, 'refresh']);
-Route::post('me', [AuthController::class, 'me']);
+Route::controller(AuthController::class)->group(function () {
+    Route::post('login', 'login');
+    Route::post('register', 'register');
+    Route::post('logout', 'logout');
+    Route::post('refresh', 'refresh');
+    Route::post('me', 'me');
+});
 
 Route::controller(TaskController::class)->middleware('auth')->group(function () {
     Route::get('list-tasks', 'index');
-    Route::get('task/{id}', 'secondaryTasks');
     Route::post('taskCreate', 'store');
-    Route::post('secondaryTaskCreate/{id}', 'storeSecondaryTask');
-    Route::put('secondaryTaskUpdate/{id}', 'secondaryTaskUpdate');
-    Route::delete('removeSecondaryTask/{id}', 'removeSecondaryTask');
-    Route::delete('removeTask/{id}', 'removeTask');
+    Route::delete('removeTask/{id}', 'delete');
+});
+
+Route::controller(ItensTaskController::class)->middleware('auth')->group(function () {
+    Route::get('task/{id}', 'index');
+    Route::post('itemTaskCreate/{id}', 'store');
+    Route::put('itemTaskUpdate/{id}', 'update');
+    Route::delete('removeItemTask/{id}', 'delete');
 });

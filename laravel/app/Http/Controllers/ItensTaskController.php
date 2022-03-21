@@ -4,48 +4,48 @@ namespace App\Http\Controllers;
 
 use App\Models\ItemsTask;
 use App\Models\Task;
-use ErrorException as ErrorExceptionAlias;
+use App\Repositories\itemsTaskRepository;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Auth;
 
-class TaskController extends Controller
+class ItensTaskController
 {
+
     /**
-     * Display a listing of the resource.
-     *
+     * @param int $id
      * @return JsonResponse
      */
-    public function index(): JsonResponse
+    public function index(int $id): JsonResponse
     {
-        $tasks = Task::where('user_id', Auth::user()->id)->get();
+        $tasks = ItemsTask::where('task_id', $id)->get();
 
         if (empty($tasks)) {
             return response()->json(['tasks' => 'Você ainda não tem nenhuma task!', 'hasError' => false], 200);
         }
 
-        return response()->json(['tasks' => $tasks, 'hasError' => false], 202);
+        return response()->json(['task' => Task::find($id), 'itemsTask' => $tasks, 'hasError' => false], 202);
     }
 
     /**
      * Store a newly created resource in storage.
      *
      * @param Request $request
+     * @param $idTaskPrimary
      * @return JsonResponse
      */
-    public function store(Request $request): JsonResponse
+    public function store(Request $request, int $idTaskPrimary): JsonResponse
     {
         try {
-            $task = Task::create([
-                'user_id' => Auth::user()->id,
+            $task = ItemsTask::create([
+                'task_id' => $idTaskPrimary,
                 'task' => $request['task'],
-                'date' => date('Y-m-d'),
+                'date_execution' => $request['date'],
+                'status' => '0'
             ]);
 
             return response()->json([
-                'message' => "tarefa criada com sucesso!",
+                'message' => "Item criado com sucesso!",
                 'task' => $task,
                 'hasError' => false
             ], 202);
@@ -54,22 +54,19 @@ class TaskController extends Controller
         }
     }
 
-
     /**
-     * Display the specified resource.
+     * Update the specified resource in storage.
      *
+     * @param Request $request
      * @param int $id
      * @return JsonResponse
      */
-    public function show(int $id): JsonResponse
+    public function update(Request $request, int $id): JsonResponse
     {
         try {
-            $task = Task::find($id);
-            if (empty($task)) {
-                return response()->json(['message' => 'Tarefa não encontrada!', 'hasError' => true], 400);
-            }
+            $taskitens = new itemsTaskRepository();
 
-            return response()->json(["message" => "Tarefa encontrada!", 'task' => $task, 'hasError' => false], 202);
+            return $taskitens->update($request, $id);
         } catch (QueryException $e) {
             return response()->json(['message' => "Houve algum erro!", 'error' => $e, 'hasError' => true], 400);
         }
@@ -84,20 +81,12 @@ class TaskController extends Controller
     public function delete(int $id): JsonResponse
     {
         try {
-            $task = Task::find($id);
-            if (empty($task)) {
-                return response()->json(['message' => 'Tarefa não encontrada!', 'hasError' => true], 400);
-            }
+            $taskitens = new itemsTaskRepository();
 
-            $task->delete();
-            $tasks = Task::find($id);
-            return response()->json([
-                'task' => $tasks,
-                'message' => 'Tarefa deletada com sucesso!',
-                'hasError' => false
-            ], 202);
+            return $taskitens->delete($id);
         } catch (QueryException $e) {
             return response()->json(['message' => "Houve algum erro!", 'error' => $e, 'hasError' => true], 400);
         }
     }
+
 }

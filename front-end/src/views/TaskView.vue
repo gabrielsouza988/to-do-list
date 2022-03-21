@@ -11,7 +11,7 @@
 article.card {
   border: 1px solid #d0d0d0;
   background-color: #fff;
-  cursor: pointer;
+  /*cursor: pointer;*/
   overflow: auto;
   border-radius: 8px;
   box-shadow: 0 0 20px 1px #d0d0d0;
@@ -33,8 +33,20 @@ span {
   margin-right: 2em;
 }
 
-.btn-check-task {
-  margin-left: 5px;
+article.card:hover {
+  background-color: #42b983;
+  border: 2px solid #028d56;
+  color: #FFF;
+}
+
+.remove:hover {
+  color: #bb2d3b;
+  cursor: pointer;
+}
+
+.seach-btn:hover {
+  color: #0d6efd;
+  cursor: pointer;
 }
 
 .description-card {
@@ -45,8 +57,9 @@ span {
 
 <template>
   <div class="container">
-    <h1 class="title">Lista dos itens da tarefa: </h1>
-    <h5>{{ this.nameTask }}</h5>
+    <LogoutComponent />
+
+    <h1 class="title">To-do list</h1>
 
     <div class="row d-flex justify-content-center">
       <div class="col-md-3">
@@ -62,57 +75,46 @@ span {
           />
         </div>
       </div>
-      <div class="col-md-3">
-        <div class="form-group">
-          <label for="">Data</label>
-          <input
-              type="date"
-              class="form-control "
-              name="date"
-              id="todo-item"
-              ref="todoInput"
-              v-model="date"
-          />
-        </div>
-      </div>
     </div>
 
     <div class="row mt-2 d-flex justify-content-center">
       <div class="col-md-3">
-        <button class="btn  bg-green btn-outline-success" @click.prevent="addTask">Adicionar</button>
+        <button class="btn  bg-green btn-outline-success" @click.prevent="addTask">Add item</button>
       </div>
     </div>
 
-    <div class="row mt-3 mb-3" v-show="this.showLoading">
+    <div class="row mt-3">
       <div class="col-md-12 d-flex justify-content-center">
-        <LoadingComponent />
+        <LoadingComponent v-show="this.showLoading"/>
       </div>
     </div>
 
     <div class="row mt-3" v-show="!this.showLoading">
-      <p v-show="this.showLists">Você não tem itens cadastradas.</p>
-      <div class="col-md-4 mb-3" v-for="task in this.listTasks" :key="task.id">
+      <p v-show="this.showLists">Você não tem tarefas cadastradas.</p>
+      <div class="col-md-4 mb-3" v-for="task in this.listTasks" :key="task.id" >
         <article class="card">
           <span>
-            <i class="fa-solid fa-list-check"></i>
-            Item:
+            <div class="row d-flex justify-content-between">
+              <div class="col-md-11">
+                <i class="fa-solid fa-list-check"></i>
+                Tarefa:
+              </div>
+              <div class="col-md-1 seach-btn"  @click.prevent="redirectTask(task.id)">
+                <i class="fa-solid fa-search "></i>
+              </div>
+            </div>
           </span>
           <div class="description-card">
-            <h2>
-              {{ task.task }}
-              <i :class="task.status == '2' ? 'fa-solid fa-check text-success' : 'd-none' "></i>
-            </h2>
-            <p>Data: {{ task.date_execution }}</p>
-            <div class="row">
+            <h2>{{ task.task }}</h2>
+            <p>Data: {{ formatDate(task.date) }}</p>
+          </div>
+          <div class="card-footer">
+            <div class="row" style="width: 100%">
               <div class="col-md-12">
-                <button class="btn btn-sm btn-danger"
-                        @click.prevent="removeSecondaryTask(task.id)">
+                <div class="remove" @click.prevent="removeTask(task.id)">
                   <i class="fa-solid fa-trash-alt"></i>
-                </button>
-                <button :class="task.status == '2' ? 'd-none' : 'btn btn-sm btn-success btn-check-task'"
-                    @click.prevent="task.status == '2' ? '' : secondaryTaskUpdate(task.id)">
-                  <i class="fa-solid fa-check"></i>
-                </button>
+                  <strong>Remover</strong>
+                </div>
               </div>
             </div>
           </div>
@@ -120,12 +122,6 @@ span {
       </div>
     </div>
 
-
-    <div class="row">
-      <div class="col-md-12">
-        <button class="btn bg-secondary text-white " @click.prevent="listTasksRoute">Voltar</button>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -133,14 +129,14 @@ span {
 import Cookie from 'js-cookie';
 import {urlApi} from "@/main";
 import LoadingComponent from '@/components/LoadingComponent.vue';
+import LogoutComponent from '@/components/LogoutComponent.vue';
+import moment from 'moment';
 
 export default {
   name: "ListView",
   data() {
     return {
-      nameTask: '',
       task: '',
-      date: '',
       listTasks: [],
       showLists: true,
       showDelete: true,
@@ -148,18 +144,17 @@ export default {
     }
   },
   components: {
-    LoadingComponent
+    LoadingComponent,
+    LogoutComponent
   },
   methods: {
     addTask: function () {
-      this.showLoading = true;
       const $payload = {
         task: this.task,
-        date: this.date,
       }
       this.axios({
         method: 'post',
-        url: urlApi + 'secondaryTaskCreate/' + this.$route.params.id,
+        url: urlApi + 'taskCreate',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -172,58 +167,35 @@ export default {
       }).catch(function (error) {
         console.log(error);
       });
-        this.showLoading = false;
     },
     tasks: function () {
       this.axios({
         method: 'get',
-        url: urlApi + "task/" + this.$route.params.id,
+        url: urlApi + "list-tasks",
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
           'Authorization': 'Bearer ' + Cookie.get('_to_do_token')
         }
       }).then((response) => {
-        this.listTasks = response.data.tasksSecondary;
-        this.nameTask = response.data.task.task;
+        this.listTasks = response.data.tasks;
         this.showLoading = false;
-        if (response.data.tasksSecondary.length > 0) {
+        if (response.data.tasks.length > 0) {
           this.showLists = false;
         }
       }).catch(function () {
         this.listTasks = [{"task": "sem metodos", "id": 1}];
       });
     },
-    secondaryTaskUpdate: function (id) {
-      this.showLoading = true;
-
-      const $payload = {
-        status: '2',
-      }
-      this.axios({
-        method: 'put',
-        url: urlApi + "secondaryTaskUpdate/" + id,
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Authorization': 'Bearer ' + Cookie.get('_to_do_token')
-        },
-        data: JSON.stringify($payload)
-      }).then((response) => {
-        console.log(response);
-        this.showComplete = false;
-        this.listTasks = response.data.allTasks;
-      }).catch(function () {
-        this.listTasks = [{"task": "sem metodos", "id": 1}];
-      });
-      this.showLoading = false;
+    redirectTask: function (id) {
+      this.$router.replace('/task/' + id);
     },
-    removeSecondaryTask: function (id) {
+    removeTask: function (id) {
       this.showLoading = true;
 
       this.axios({
         method: 'delete',
-        url: urlApi + "removeSecondaryTask/" + id,
+        url: urlApi + "removeTask/" + id,
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -232,14 +204,17 @@ export default {
       }).then((response) => {
         console.log(response);
         this.showDelete = false;
-        this.listTasks = response.data.secondaryTask;
+        this.showLoading = false;
+        this.listTasks = this.tasks();
       }).catch(function () {
         this.listTasks = [{"task": "sem metodos", "id": 1}];
       });
       this.showLoading = false;
     },
-    listTasksRoute: function () {
-      this.$router.replace('/task/');
+    formatDate: function (value) {
+      if (value) {
+        return moment(String(value)).format('DD/MM/YYYY')
+      }
     }
   },
   mounted() {

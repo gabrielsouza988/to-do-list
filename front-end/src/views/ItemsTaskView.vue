@@ -33,14 +33,8 @@ span {
   margin-right: 2em;
 }
 
-article.card:hover {
-  background-color: #42b983;
-  border: 2px solid #028d56;
-  color: #FFF;
-}
-
-.remove:hover {
-  color: #bb2d3b;
+.btn-check-task {
+  margin-left: 5px;
 }
 
 .description-card {
@@ -51,8 +45,8 @@ article.card:hover {
 
 <template>
   <div class="container">
-
-    <h1 class="title">To-do list</h1>
+    <h1 class="title">Lista dos itens da tarefa: </h1>
+    <h5>{{ this.nameTask }}</h5>
 
     <div class="row d-flex justify-content-center">
       <div class="col-md-3">
@@ -85,33 +79,40 @@ article.card:hover {
 
     <div class="row mt-2 d-flex justify-content-center">
       <div class="col-md-3">
-        <button class="btn  bg-green btn-outline-success" @click.prevent="addTask">Add item</button>
+        <button class="btn  bg-green btn-outline-success" @click.prevent="addItem">Adicionar</button>
       </div>
     </div>
 
-    <div class="row mt-3">
+    <div class="row mt-3 mb-3" v-show="this.showLoading">
       <div class="col-md-12 d-flex justify-content-center">
-        <LoadingComponent v-show="this.showLoading"/>
+        <LoadingComponent />
       </div>
     </div>
 
     <div class="row mt-3" v-show="!this.showLoading">
-      <p v-show="this.showLists">Você não tem tarefas cadastradas.</p>
-      <div class="col-md-4 mb-3" v-for="task in this.listTasks" :key="task.id" @click.prevent="redirectTask(task.id)">
+      <p v-show="this.showLists">Você não tem itens cadastradas.</p>
+      <div class="col-md-4 mb-3" v-for="task in this.listItems" :key="task.id">
         <article class="card">
           <span>
             <i class="fa-solid fa-list-check"></i>
-            Tarefa:
+            Item:
           </span>
           <div class="description-card">
-            <h2>{{ task.task }}</h2>
-            <p>Data: {{ task.date }}</p>
+            <h2>
+              {{ task.task }}
+              <i :class="task.status == '2' ? 'fa-solid fa-check text-success' : 'd-none' "></i>
+            </h2>
+            <p>Data: {{ formatDate(task.date_execution) }}</p>
             <div class="row">
               <div class="col-md-12">
-                <div class="remove" @click.prevent="removeTask(task.id)">
+                <button class="btn btn-sm btn-danger"
+                        @click.prevent="removeItemTask(task.id)">
                   <i class="fa-solid fa-trash-alt"></i>
-                  <strong>Remover</strong>
-                </div>
+                </button>
+                <button :class="task.status == '2' ? 'd-none' : 'btn btn-sm btn-success btn-check-task'"
+                    @click.prevent="task.status == '2' ? '' : itemsTaskUpdate(task.id)">
+                  <i class="fa-solid fa-check"></i>
+                </button>
               </div>
             </div>
           </div>
@@ -119,6 +120,12 @@ article.card:hover {
       </div>
     </div>
 
+
+    <div class="row">
+      <div class="col-md-12">
+        <button class="btn bg-secondary text-white " @click.prevent="listTasksRoute">Voltar</button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -126,14 +133,16 @@ article.card:hover {
 import Cookie from 'js-cookie';
 import {urlApi} from "@/main";
 import LoadingComponent from '@/components/LoadingComponent.vue';
+import moment from "moment";
 
 export default {
-  name: "ListView",
+  name: "ItemsTaskView",
   data() {
     return {
+      nameTask: '',
       task: '',
       date: '',
-      listTasks: [],
+      listItems: [],
       showLists: true,
       showDelete: true,
       showLoading: true
@@ -143,14 +152,15 @@ export default {
     LoadingComponent
   },
   methods: {
-    addTask: function () {
+    addItem: function () {
+      this.showLoading = true;
       const $payload = {
         task: this.task,
         date: this.date,
       }
       this.axios({
         method: 'post',
-        url: urlApi + 'taskCreate',
+        url: urlApi + 'itemTaskCreate/' + this.$route.params.id,
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -158,40 +168,66 @@ export default {
         },
         data: JSON.stringify($payload)
       }).then((response) => {
-        this.listTasks.push(response.data.task);
+        this.listItems.push(response.data.task);
         this.showLists = false;
       }).catch(function (error) {
         console.log(error);
       });
+        this.showLoading = false;
     },
     tasks: function () {
       this.axios({
         method: 'get',
-        url: urlApi + "list-tasks",
+        url: urlApi + "task/" + this.$route.params.id,
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
           'Authorization': 'Bearer ' + Cookie.get('_to_do_token')
         }
       }).then((response) => {
-        this.listTasks = response.data.tasks;
+        if (response.data.hasError) {
+          return this.listItems = [{"task": "Error", "id": 1}];
+        }
+        this.listItems = response.data.itemsTask;
+        this.nameTask = response.data.task.task;
         this.showLoading = false;
-        if (response.data.tasks.length > 0) {
+        if (response.data.itemsTask.length > 0) {
           this.showLists = false;
         }
       }).catch(function () {
-        this.listTasks = [{"task": "sem metodos", "id": 1}];
+        this.listItems = [{"task": "sem metodos", "id": 1}];
       });
     },
-    redirectTask: function (id) {
-      this.$router.replace('/task/' + id);
+    itemsTaskUpdate: function (id) {
+      this.showLoading = true;
+
+      const $payload = {
+        status: '2',
+      }
+      this.axios({
+        method: 'put',
+        url: urlApi + "itemTaskUpdate/" + id,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer ' + Cookie.get('_to_do_token')
+        },
+        data: JSON.stringify($payload)
+      }).then((response) => {
+        console.log(response);
+        this.showComplete = false;
+        this.listItems = response.data.allTasks;
+      }).catch(function () {
+        this.listItems = [{"task": "sem metodos", "id": 1}];
+      });
+      this.showLoading = false;
     },
-    removeTask: function (id) {
+    removeItemTask: function (id) {
       this.showLoading = true;
 
       this.axios({
         method: 'delete',
-        url: urlApi + "removeTask/" + id,
+        url: urlApi + "removeItemTask/" + id,
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -200,16 +236,23 @@ export default {
       }).then((response) => {
         console.log(response);
         this.showDelete = false;
-        this.showLoading = false;
-        this.listTasks = this.tasks();
+        this.listItems = response.data.itemsTask;
       }).catch(function () {
-        this.listTasks = [{"task": "sem metodos", "id": 1}];
+        this.listItems = [{"task": "sem metodos", "id": 1}];
       });
       this.showLoading = false;
+    },
+    listTasksRoute: function () {
+      this.$router.replace('/task/');
+    },
+    formatDate: function (value) {
+      if (value) {
+        return moment(String(value)).format('DD/MM/YYYY')
+      }
     }
   },
   mounted() {
-    this.listTasks = this.tasks();
+    this.listItems = this.tasks();
   }
 }
 </script>

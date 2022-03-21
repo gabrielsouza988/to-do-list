@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class SecondaryTask extends Model
+class ItemsTask extends Model
 {
     use SoftDeletes;
     protected $table = 'secondary_task';

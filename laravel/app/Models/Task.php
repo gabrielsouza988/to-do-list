@@ -19,8 +19,8 @@ class Task extends Model
         'date',
     ];
 
-    public function secondaryTasks(): HasMany
+    public function itensTasks(): HasMany
     {
-        return $this->hasMany(SecondaryTask::class, 'task_id', 'id');
+        return $this->hasMany(ItemsTask::class, 'task_id', 'id');
     }
 }

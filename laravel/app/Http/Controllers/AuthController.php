@@ -30,7 +30,7 @@ class AuthController extends Controller
         ];
 
         if (!$token = auth()->attempt($credentials)) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+            return response()->json(['error' => 'Unauthorized', 'hasError' => true], 401);
         }
 
         return response()->json([
@@ -59,9 +59,9 @@ class AuthController extends Controller
             ]);
 
 
-            return response()->json(['message' => "Usuario(a) criada com sucesso!"], 202);
+            return response()->json(['message' => "Usuario(a) criada com sucesso!", 'hasError' => false], 202);
         } catch (QueryException $e) {
-            return response()->json(['message' => "Houve algum erro!", 'error' => $e], 400);
+            return response()->json(['message' => "Houve algum erro!", 'error' => $e, 'hasError' => true], 400);
         }
     }
 
