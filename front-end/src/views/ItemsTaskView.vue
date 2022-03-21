@@ -48,6 +48,17 @@ span {
     <h1 class="title">Lista dos itens da tarefa: </h1>
     <h5>{{ this.nameTask }}</h5>
 
+    <div class="row" v-if="errors.length">
+      <div class="col-md-12">
+        <p>
+          <b>Por favor, corrija o(s) seguinte(s) erro(s):</b>
+        <ul>
+          <li v-for="error in errors" :key="error">{{ error }}</li>
+        </ul>
+        </p>
+      </div>
+    </div>
+
     <div class="row d-flex justify-content-center">
       <div class="col-md-3">
         <div class="form-group">
@@ -142,6 +153,7 @@ export default {
       nameTask: '',
       task: '',
       date: '',
+      errors: [],
       listItems: [],
       showLists: true,
       showDelete: true,
@@ -154,9 +166,16 @@ export default {
   methods: {
     addItem: function () {
       this.showLoading = true;
-      const $payload = {
+      const payload = {
         task: this.task,
         date: this.date,
+      }
+      this.errors = [];
+      if (!payload.task) {
+        this.errors.push('O nome do item é obrigatório.');
+      }
+      if (!payload.date) {
+        this.errors.push('A data é obrigatória.');
       }
       this.axios({
         method: 'post',
@@ -166,7 +185,7 @@ export default {
           'Accept': 'application/json',
           'Authorization': 'Bearer ' + Cookie.get('_to_do_token')
         },
-        data: JSON.stringify($payload)
+        data: JSON.stringify(payload)
       }).then((response) => {
         this.listItems.push(response.data.task);
         this.showLists = false;
@@ -201,7 +220,7 @@ export default {
     itemsTaskUpdate: function (id) {
       this.showLoading = true;
 
-      const $payload = {
+      const payload = {
         status: '2',
       }
       this.axios({
@@ -212,7 +231,7 @@ export default {
           'Accept': 'application/json',
           'Authorization': 'Bearer ' + Cookie.get('_to_do_token')
         },
-        data: JSON.stringify($payload)
+        data: JSON.stringify(payload)
       }).then((response) => {
         console.log(response);
         this.showComplete = false;
@@ -253,6 +272,7 @@ export default {
   },
   mounted() {
     this.listItems = this.tasks();
+    this.errors = [];
   }
 }
 </script>

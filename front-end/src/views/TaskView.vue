@@ -61,6 +61,17 @@ article.card:hover {
 
     <h1 class="title">To-do list</h1>
 
+    <div class="row" v-if="errors.length">
+      <div class="col-md-12">
+        <p>
+          <b>Por favor, corrija o(s) seguinte(s) erro(s):</b>
+        <ul>
+          <li v-for="error in errors" :key="error">{{ error }}</li>
+        </ul>
+        </p>
+      </div>
+    </div>
+
     <div class="row d-flex justify-content-center">
       <div class="col-md-3">
         <div class="form-group">
@@ -138,6 +149,7 @@ export default {
     return {
       task: '',
       listTasks: [],
+      errors: [],
       showLists: true,
       showDelete: true,
       showLoading: true
@@ -149,9 +161,14 @@ export default {
   },
   methods: {
     addTask: function () {
-      const $payload = {
+      const payload = {
         task: this.task,
       }
+      this.errors = [];
+      if (!payload.task) {
+        this.errors.push('O nome da tarefa é obrigatório.');
+      }
+
       this.axios({
         method: 'post',
         url: urlApi + 'taskCreate',
@@ -160,7 +177,7 @@ export default {
           'Accept': 'application/json',
           'Authorization': 'Bearer ' + Cookie.get('_to_do_token')
         },
-        data: JSON.stringify($payload)
+        data: JSON.stringify(payload)
       }).then((response) => {
         this.listTasks.push(response.data.task);
         this.showLists = false;
@@ -219,6 +236,7 @@ export default {
   },
   mounted() {
     this.listTasks = this.tasks();
+    this.errors = [];
   }
 }
 </script>
